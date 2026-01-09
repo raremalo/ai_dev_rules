@@ -1,0 +1,160 @@
+# CLAUDE.md Template
+
+Kopiere diese Datei in dein Projekt-Root und passe sie an.
+
+---
+
+# CLAUDE.md
+
+## Projekt-Übersicht
+
+**Name:** [Projektname]
+**Typ:** [Web App / API / CLI / Library]
+**Status:** [Development / Production]
+
+## Tech-Stack
+
+- **Framework:** [Vue 3 / React / Next.js / Nuxt]
+- **Language:** TypeScript (strict mode)
+- **Styling:** Tailwind CSS
+- **State:** [Pinia / Redux / Zustand]
+- **API:** [REST / GraphQL / tRPC]
+- **Database:** [PostgreSQL / Supabase / MongoDB]
+- **Testing:** Vitest + Vue Testing Library
+
+## Wichtige Commands
+
+```bash
+npm run dev          # Development Server (Port 3000)
+npm run build        # Production Build
+npm run test         # Unit Tests mit Vitest
+npm run test:e2e     # E2E Tests mit Playwright
+npm run lint         # ESLint + Prettier Check
+npm run type-check   # TypeScript Strict Check
+```
+
+## Projekt-Struktur
+
+```
+src/
+├── components/      # UI-Komponenten (PascalCase)
+│   ├── ui/          # Basis-Komponenten (Button, Input, Card)
+│   └── features/    # Feature-Komponenten (UserCard, OrderList)
+├── composables/     # Vue Composables (use[Name].ts)
+├── stores/          # Pinia Stores ([name]Store.ts)
+├── services/        # API-Services ([name]Service.ts)
+├── types/           # TypeScript Interfaces
+├── utils/           # Helper Functions
+└── pages/           # Route-Seiten (falls file-based routing)
+```
+
+## Code-Konventionen
+
+### Naming
+
+| Typ | Pattern | Beispiel |
+|-----|---------|----------|
+| Komponenten | PascalCase + Suffix | `UserProfileCard.vue` |
+| Composables | use + PascalCase | `useUserAuth.ts` |
+| Stores | camelCase + Store | `userStore.ts` |
+| Services | PascalCase + Service | `PaymentService.ts` |
+| Types | PascalCase | `User.ts`, `ApiResponse.ts` |
+
+### Komponenten-Template
+
+```vue
+<template>
+  <!-- Template hier -->
+</template>
+
+<script setup lang="ts">
+// 1. Imports
+// 2. Props & Emits
+// 3. Composables & Stores  
+// 4. Reactive State
+// 5. Computed
+// 6. Methods
+// 7. Lifecycle Hooks
+</script>
+```
+
+## Strikte Regeln
+
+WICHTIG: Lies diese Regeln bei JEDER Session!
+
+### IMMER:
+
+- TypeScript mit strikten Typen (kein `any`)
+- Tailwind-Klassen für Styling
+- Error-Handling mit try/catch für async Code
+- Loading-States für alle API-Calls
+- `<script setup lang="ts">` für Vue-Komponenten
+- Destructuring für Props
+- Computed Properties statt Watch (wenn möglich)
+
+### NIEMALS:
+
+- Inline-Styles (`style="..."`)
+- `console.log` in Production-Code
+- `any` als TypeScript-Typ
+- Options API (wir nutzen Composition API)
+- Direkte DOM-Manipulation
+- Hardcoded Strings (verwende i18n)
+- Secrets in Code committen
+
+## Gotchas & Bekannte Probleme
+
+### Build-Probleme
+
+- Nach `package.json` Änderung: `npm install` ausführen
+- Nach Config-Änderung: Dev-Server neu starten
+- TypeScript-Errors: `npm run type-check` für Details
+
+### API-Besonderheiten
+
+- Auth-Token im Header: `Authorization: Bearer ${token}`
+- Rate-Limit: 100 requests/minute
+- Pagination: `?page=1&limit=20`
+
+### Deployment
+
+- Environment-Variables in `.env.local` (nicht committen!)
+- Production-Build mit `npm run build`
+- Preview mit `npm run preview`
+
+## Referenz-Dateien
+
+Lies diese Dateien für Kontext:
+
+- `@docs/PRD.md` - Product Requirements
+- `@docs/ARCHITECTURE.md` - System-Architektur
+- `@docs/PATTERNS.md` - Code-Patterns
+- `@docs/COMPONENTS.md` - Komponenten-Registry
+
+## Beads Task-Tracking
+
+```bash
+bd ready --json      # Zeige offene Tasks
+bd create "Task"     # Neuen Task erstellen
+bd close bd-xxx      # Task abschließen
+```
+
+## Session-Protokoll
+
+### Bei Session-Start:
+
+1. Lies diese CLAUDE.md
+2. `bd ready --json` für offene Tasks
+3. Frage nach dem heutigen Ziel
+
+### Bei Session-Ende:
+
+1. `bd create` für offene Arbeit
+2. `bd close` für erledigte Tasks
+3. `bd sync && git commit && git push`
+
+---
+
+## Projekt-spezifische Notizen
+
+[Füge hier projekt-spezifische Hinweise ein]

@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "ai-dev-rules": {
+      "command": "npx",
+      "args": ["-y", "agent-rules-mcp@latest"],
+      "env": {
+        "GITHUB_OWNER": "DEIN-USERNAME",
+        "GITHUB_REPO": "ai-dev-rules",
+        "GITHUB_PATH": "rules",
+        "GITHUB_BRANCH": "main"
+      },
+      "disabled": false
+    }
+  }
+}

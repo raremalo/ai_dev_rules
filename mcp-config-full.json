@@ -1,0 +1,55 @@
+{
+  "mcpServers": {
+    
+    "ai-dev-rules": {
+      "command": "npx",
+      "args": ["-y", "agent-rules-mcp@latest"],
+      "env": {
+        "GITHUB_OWNER": "DEIN-USERNAME",
+        "GITHUB_REPO": "ai-dev-rules",
+        "GITHUB_PATH": "rules",
+        "GITHUB_BRANCH": "main"
+      },
+      "disabled": false
+    },
+
+    "ai-skills": {
+      "command": "npx",
+      "args": ["-y", "agent-rules-mcp@latest"],
+      "env": {
+        "GITHUB_OWNER": "DEIN-USERNAME",
+        "GITHUB_REPO": "ai-dev-rules",
+        "GITHUB_PATH": "skills",
+        "GITHUB_BRANCH": "main"
+      },
+      "disabled": false
+    },
+
+    "cognee": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/path/to/cognee-mcp",
+        "run",
+        "cognee"
+      ],
+      "env": {
+        "ENV": "local",
+        "TOKENIZERS_PARALLELISM": "false",
+        "LLM_API_KEY": "sk-your-api-key",
+        "GRAPH_DATABASE_PROVIDER": "networkx",
+        "VECTOR_DB_PROVIDER": "lancedb",
+        "DB_PROVIDER": "sqlite",
+        "DB_NAME": "cognee_db"
+      },
+      "disabled": false
+    },
+
+    "beads": {
+      "command": "beads-mcp",
+      "args": [],
+      "env": {},
+      "disabled": false
+    }
+  }
+}

@@ -8,11 +8,70 @@ Ein vollständiges Regel-System für AI-gestützte Softwareentwicklung mit **per
 
 ## 🚀 Schnellstart
 
-### Option 1: Vollständiges Setup (Empfohlen)
+### One-Liner Setup
 
 ```bash
-# 1. Repository klonen/forken
-git clone https://github.com/DEIN-USERNAME/ai-dev-rules.git
+# MCP Setup (Cursor, Claude Desktop, Kiro, Windsurf)
+curl -fsSL https://raw.githubusercontent.com/raremalo/ai_dev_rules/master/scripts/setup.sh | bash -s mcp
+
+# Export zu allen IDE-Formaten
+curl -fsSL https://raw.githubusercontent.com/raremalo/ai_dev_rules/master/scripts/setup.sh | bash -s all
+
+# Nur ein Format (cursor, copilot, claude, windsurf, zed, cline)
+curl -fsSL https://raw.githubusercontent.com/raremalo/ai_dev_rules/master/scripts/setup.sh | bash -s cursor
+```
+
+### Unterstützte IDEs & Tools
+
+| IDE/Tool | Format | Command |
+|----------|--------|---------|
+| Cursor | `.cursorrules` | `bash -s cursor` |
+| VS Code + Copilot | `.github/copilot-instructions.md` | `bash -s copilot` |
+| Claude Desktop | `CLAUDE.md` + MCP | `bash -s mcp` |
+| Windsurf | `.windsurfrules` | `bash -s windsurf` |
+| Zed | `.zed/rules.md` | `bash -s zed` |
+| Cline | `.clinerules` | `bash -s cline` |
+| Kiro | MCP | `bash -s mcp` |
+| Verdent | MCP + `AGENTS.md` | `bash -s mcp` |
+
+### Option 1: Mit dotagent (Empfohlen)
+
+```bash
+# dotagent installieren
+npm install -g dotagent
+
+# Repository klonen
+git clone https://github.com/raremalo/ai_dev_rules.git
+cd ai_dev_rules
+
+# Zu allen Formaten exportieren
+dotagent export --formats all
+```
+
+### Option 2: MCP Server (Dynamisch)
+
+```json
+{
+  "mcpServers": {
+    "ai-dev-rules": {
+      "command": "npx",
+      "args": ["-y", "agent-rules-mcp@latest"],
+      "env": {
+        "GITHUB_OWNER": "raremalo",
+        "GITHUB_REPO": "ai_dev_rules",
+        "GITHUB_PATH": "rules",
+        "GITHUB_BRANCH": "master"
+      }
+    }
+  }
+}
+```
+
+### Option 3: Vollständiges Setup (Mit Memory & Tasks)
+
+```bash
+# 1. Repository klonen
+git clone https://github.com/raremalo/ai_dev_rules.git
 
 # 2. MCP-Konfiguration kopieren
 cp mcp-config-full.json ~/.cursor/mcp.json
@@ -22,31 +81,12 @@ cp mcp-config-full.json ~/.cursor/mcp.json
 # 3. Pfade und API-Keys anpassen
 # Editiere die JSON-Datei mit deinen Werten
 
-# 4. Cognee installieren (optional)
+# 4. Cognee installieren (optional - AI Memory)
 git clone https://github.com/topoteretes/cognee.git
 cd cognee/cognee-mcp && uv sync --dev --all-extras
 
-# 5. Beads installieren (optional)
+# 5. Beads installieren (optional - Task Tracking)
 curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash
-```
-
-### Option 2: Nur Regeln (Minimal)
-
-```json
-{
-  "mcpServers": {
-    "ai-dev-rules": {
-      "command": "npx",
-      "args": ["-y", "agent-rules-mcp@latest"],
-      "env": {
-        "GITHUB_OWNER": "DEIN-USERNAME",
-        "GITHUB_REPO": "ai-dev-rules",
-        "GITHUB_PATH": "rules",
-        "GITHUB_BRANCH": "main"
-      }
-    }
-  }
-}
 ```
 
 ---

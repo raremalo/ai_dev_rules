@@ -5,10 +5,10 @@
       "command": "npx",
       "args": ["-y", "agent-rules-mcp@latest"],
       "env": {
-        "GITHUB_OWNER": "DEIN-USERNAME",
-        "GITHUB_REPO": "ai-dev-rules",
+        "GITHUB_OWNER": "raremalo",
+        "GITHUB_REPO": "ai_dev_rules",
         "GITHUB_PATH": "rules",
-        "GITHUB_BRANCH": "main"
+        "GITHUB_BRANCH": "master"
       },
       "disabled": false
     },
@@ -17,10 +17,10 @@
       "command": "npx",
       "args": ["-y", "agent-rules-mcp@latest"],
       "env": {
-        "GITHUB_OWNER": "DEIN-USERNAME",
-        "GITHUB_REPO": "ai-dev-rules",
+        "GITHUB_OWNER": "raremalo",
+        "GITHUB_REPO": "ai_dev_rules",
         "GITHUB_PATH": "skills",
-        "GITHUB_BRANCH": "main"
+        "GITHUB_BRANCH": "master"
       },
       "disabled": false
     },

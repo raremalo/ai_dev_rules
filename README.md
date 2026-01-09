@@ -8,33 +8,54 @@ Ein vollständiges Regel-System für AI-gestützte Softwareentwicklung mit **per
 
 ## 🚀 Schnellstart
 
-### One-Liner Setup
+### Option 1: NPX (Empfohlen)
 
 ```bash
-# MCP Setup (Cursor, Claude Desktop, Kiro, Windsurf)
-curl -fsSL https://raw.githubusercontent.com/raremalo/ai_dev_rules/master/scripts/setup.sh | bash -s mcp
+# Interaktiver Setup-Wizard
+npx ai-dev-rules setup
+
+# MCP Setup (Cursor, Claude Desktop, Kiro)
+npx ai-dev-rules setup --mcp
+
+# Export zu einem Format
+npx ai-dev-rules setup --format cursor
 
 # Export zu allen IDE-Formaten
-curl -fsSL https://raw.githubusercontent.com/raremalo/ai_dev_rules/master/scripts/setup.sh | bash -s all
+npx ai-dev-rules setup --all
 
-# Nur ein Format (cursor, copilot, claude, windsurf, zed, cline)
-curl -fsSL https://raw.githubusercontent.com/raremalo/ai_dev_rules/master/scripts/setup.sh | bash -s cursor
+# Installation verifizieren
+npx ai-dev-rules verify
+```
+
+### Option 2: Shell-Script (Sicher)
+
+```bash
+# Schritt 1: Script herunterladen
+curl -fsSL https://raw.githubusercontent.com/raremalo/ai_dev_rules/master/scripts/setup.sh -o /tmp/setup.sh
+
+# Schritt 2: Script prüfen (Security Best Practice)
+less /tmp/setup.sh
+
+# Schritt 3: Ausführen
+bash /tmp/setup.sh        # Interaktiv
+bash /tmp/setup.sh mcp    # MCP Setup
+bash /tmp/setup.sh all    # Alle Formate
 ```
 
 ### Unterstützte IDEs & Tools
 
-| IDE/Tool | Format | Command |
-|----------|--------|---------|
-| Cursor | `.cursorrules` | `bash -s cursor` |
-| VS Code + Copilot | `.github/copilot-instructions.md` | `bash -s copilot` |
-| Claude Desktop | `CLAUDE.md` + MCP | `bash -s mcp` |
-| Windsurf | `.windsurfrules` | `bash -s windsurf` |
-| Zed | `.zed/rules.md` | `bash -s zed` |
-| Cline | `.clinerules` | `bash -s cline` |
-| Kiro | MCP | `bash -s mcp` |
-| Verdent | MCP + `AGENTS.md` | `bash -s mcp` |
+| IDE/Tool | Format | NPX Command |
+|----------|--------|-------------|
+| Cursor | `.cursorrules` | `npx ai-dev-rules setup -f cursor` |
+| VS Code + Copilot | `.github/copilot-instructions.md` | `npx ai-dev-rules setup -f copilot` |
+| Claude Desktop | MCP | `npx ai-dev-rules setup --mcp` |
+| Windsurf | `.windsurfrules` | `npx ai-dev-rules setup -f windsurf` |
+| Zed | `.zed/rules.md` | `npx ai-dev-rules setup -f zed` |
+| Cline | `.clinerules` | `npx ai-dev-rules setup -f cline` |
+| Kiro | MCP | `npx ai-dev-rules setup --mcp` |
+| Verdent | MCP + `AGENTS.md` | `npx ai-dev-rules setup --mcp` |
 
-### Option 1: Mit dotagent (Empfohlen)
+### Option 3: Mit dotagent
 
 ```bash
 # dotagent installieren
@@ -48,7 +69,7 @@ cd ai_dev_rules
 dotagent export --formats all
 ```
 
-### Option 2: MCP Server (Dynamisch)
+### Option 4: MCP Server (Dynamisch)
 
 ```json
 {
@@ -67,7 +88,7 @@ dotagent export --formats all
 }
 ```
 
-### Option 3: Vollständiges Setup (Mit Memory & Tasks)
+### Option 5: Vollständiges Setup (Mit Memory & Tasks)
 
 ```bash
 # 1. Repository klonen

@@ -1,67 +1,144 @@
 #!/bin/bash
 set -e
 
+VERSION="1.0.0"
 REPO_URL="https://github.com/raremalo/ai_dev_rules"
 REPO_RAW="https://raw.githubusercontent.com/raremalo/ai_dev_rules/master"
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+EXIT_SUCCESS=0
+EXIT_ERROR=1
+EXIT_INVALID_ARGS=2
+EXIT_NETWORK_ERROR=3
+EXIT_PERMISSION_ERROR=4
+EXIT_VERIFY_FAILED=5
 
 print_header() {
     echo ""
     echo "================================================"
-    echo "  AI Dev Rules - Universal Setup"
+    echo "  AI Dev Rules Setup v${VERSION}"
     echo "================================================"
     echo ""
 }
 
 print_usage() {
-    echo "Usage: $0 [OPTION]"
+    echo "Usage: $0 [COMMAND] [OPTIONS]"
+    echo ""
+    echo "Commands:"
+    echo "  setup              Interactive setup wizard"
+    echo "  mcp                Configure MCP server (Cursor, Claude Desktop, Kiro)"
+    echo "  cursor             Export to Cursor (.cursorrules)"
+    echo "  copilot            Export to GitHub Copilot (.github/copilot-instructions.md)"
+    echo "  claude             Export to Claude (CLAUDE.md)"
+    echo "  windsurf           Export to Windsurf (.windsurfrules)"
+    echo "  zed                Export to Zed (.zed/rules.md)"
+    echo "  cline              Export to Cline (.clinerules)"
+    echo "  all                Export to all IDE formats"
+    echo "  verify             Verify installation"
+    echo "  help               Show this help"
     echo ""
     echo "Options:"
-    echo "  mcp          Configure MCP server (Cursor, Claude Desktop, Kiro, Windsurf)"
-    echo "  dotagent     Export to all IDE formats using dotagent"
-    echo "  cursor       Export to Cursor (.cursorrules)"
-    echo "  copilot      Export to GitHub Copilot (.github/copilot-instructions.md)"
-    echo "  claude       Export to Claude (CLAUDE.md)"
-    echo "  windsurf     Export to Windsurf (.windsurfrules)"
-    echo "  zed          Export to Zed (.zed/rules.md)"
-    echo "  cline        Export to Cline (.clinerules)"
-    echo "  all          Export to all IDE formats"
-    echo "  clone        Clone repository for local development"
+    echo "  --no-verify        Skip verification step"
+    echo "  --yes, -y          Auto-confirm prompts"
     echo ""
-    echo "Examples:"
-    echo "  $0 mcp              # Setup MCP configuration"
-    echo "  $0 cursor           # Export rules to .cursorrules"
-    echo "  $0 all              # Export to all formats"
+    echo "Recommended (secure) usage:"
+    echo "  # Step 1: Download script"
+    echo "  curl -fsSL ${REPO_RAW}/scripts/setup.sh -o /tmp/ai-dev-rules-setup.sh"
+    echo ""
+    echo "  # Step 2: Review script (security best practice)"
+    echo "  less /tmp/ai-dev-rules-setup.sh"
+    echo ""
+    echo "  # Step 3: Execute"
+    echo "  bash /tmp/ai-dev-rules-setup.sh [COMMAND]"
+    echo ""
+    echo "Alternative (requires Node.js):"
+    echo "  npx ai-dev-rules setup"
     echo ""
 }
 
+check_network() {
+    if ! curl -s --head --connect-timeout 5 "https://github.com" > /dev/null 2>&1; then
+        echo -e "${RED}Fehler: Keine Internetverbindung oder GitHub nicht erreichbar${NC}"
+        exit $EXIT_NETWORK_ERROR
+    fi
+}
+
+check_permissions() {
+    local target_dir="${1:-.}"
+    if [ ! -w "$target_dir" ]; then
+        echo -e "${RED}Fehler: Keine Schreibrechte in $target_dir${NC}"
+        exit $EXIT_PERMISSION_ERROR
+    fi
+}
+
+fetch_rules() {
+    local temp_dir
+    temp_dir=$(mktemp -d)
+    
+    echo -e "${BLUE}Lade Regeln von GitHub...${NC}"
+    
+    if ! git clone --depth 1 --quiet "$REPO_URL" "$temp_dir" 2>/dev/null; then
+        echo -e "${RED}Fehler: Konnte Repository nicht klonen${NC}"
+        rm -rf "$temp_dir"
+        exit $EXIT_NETWORK_ERROR
+    fi
+    
+    echo "$temp_dir"
+}
+
+verify_file() {
+    local file="$1"
+    if [ -f "$file" ] && [ -s "$file" ]; then
+        local size
+        size=$(wc -c < "$file" | tr -d ' ')
+        echo -e "${GREEN}✓${NC} $(basename "$file") erstellt (${size} bytes)"
+        return 0
+    else
+        echo -e "${RED}✗${NC} $(basename "$file") - Fehler"
+        return 1
+    fi
+}
+
+verify_json() {
+    local file="$1"
+    if [ -f "$file" ]; then
+        if python3 -c "import json; json.load(open('$file'))" 2>/dev/null || \
+           node -e "require('$file')" 2>/dev/null; then
+            echo -e "${GREEN}✓${NC} $(basename "$file") - valides JSON"
+            return 0
+        else
+            echo -e "${RED}✗${NC} $(basename "$file") - ungültiges JSON"
+            return 1
+        fi
+    fi
+    return 1
+}
+
 setup_mcp() {
-    echo "Setting up MCP configuration..."
+    echo -e "${BLUE}Konfiguriere MCP Server...${NC}"
     
-    MCP_CONFIG=""
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        if [ -d "$HOME/.cursor" ]; then
-            MCP_CONFIG="$HOME/.cursor/mcp.json"
-            echo "Detected: Cursor"
-        elif [ -d "$HOME/Library/Application Support/Claude" ]; then
-            MCP_CONFIG="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
-            echo "Detected: Claude Desktop"
-        fi
-    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        if [ -d "$HOME/.cursor" ]; then
-            MCP_CONFIG="$HOME/.cursor/mcp.json"
-        fi
+    local config_path=""
+    
+    if [ -d "$HOME/.cursor" ]; then
+        config_path="$HOME/.cursor/mcp.json"
+        echo "Erkannt: Cursor"
+    elif [ -d "$HOME/Library/Application Support/Claude" ]; then
+        config_path="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
+        echo "Erkannt: Claude Desktop"
     fi
     
-    if [ -z "$MCP_CONFIG" ]; then
-        echo "No MCP client detected. Please specify config path:"
-        read -r MCP_CONFIG
+    if [ -z "$config_path" ]; then
+        echo -e "${YELLOW}Kein MCP-Client erkannt.${NC}"
+        read -rp "Pfad zur Config-Datei (oder Enter für ~/.cursor/mcp.json): " config_path
+        config_path="${config_path:-$HOME/.cursor/mcp.json}"
     fi
     
-    echo ""
-    echo "MCP Config: $MCP_CONFIG"
-    echo ""
-    
-    MCP_ENTRY='{
+    local mcp_config='{
   "mcpServers": {
     "ai-dev-rules": {
       "command": "npx",
@@ -86,167 +163,265 @@ setup_mcp() {
   }
 }'
     
-    if [ -f "$MCP_CONFIG" ]; then
-        echo "Existing config found. Add this to your mcpServers:"
-        echo ""
-        echo "$MCP_ENTRY"
-        echo ""
-        echo "Or backup and replace? (y/N)"
-        read -r REPLACE
-        if [[ "$REPLACE" =~ ^[Yy]$ ]]; then
-            cp "$MCP_CONFIG" "$MCP_CONFIG.backup"
-            echo "$MCP_ENTRY" > "$MCP_CONFIG"
-            echo "Config written. Backup: $MCP_CONFIG.backup"
+    if [ -f "$config_path" ]; then
+        if [ "$AUTO_YES" != "true" ]; then
+            echo -e "${YELLOW}Existierende Config gefunden: $config_path${NC}"
+            read -rp "Backup erstellen und zusammenführen? (j/N): " confirm
+            if [[ ! "$confirm" =~ ^[jJyY]$ ]]; then
+                echo "Abgebrochen."
+                exit $EXIT_SUCCESS
+            fi
+        fi
+        
+        local backup_path="${config_path}.backup.$(date +%s)"
+        cp "$config_path" "$backup_path"
+        echo -e "${GREEN}Backup: $backup_path${NC}"
+        
+        if command -v jq &> /dev/null; then
+            jq -s '.[0] * .[1]' "$config_path" <(echo "$mcp_config") > "${config_path}.tmp"
+            mv "${config_path}.tmp" "$config_path"
+        else
+            echo "$mcp_config" > "$config_path"
+            echo -e "${YELLOW}Warnung: jq nicht installiert, Config wurde ersetzt (nicht zusammengeführt)${NC}"
         fi
     else
-        mkdir -p "$(dirname "$MCP_CONFIG")"
-        echo "$MCP_ENTRY" > "$MCP_CONFIG"
-        echo "Config written to: $MCP_CONFIG"
+        mkdir -p "$(dirname "$config_path")"
+        echo "$mcp_config" > "$config_path"
     fi
     
+    echo -e "${GREEN}MCP-Konfiguration erstellt: $config_path${NC}"
     echo ""
-    echo "Done! Restart your IDE to activate MCP servers."
-}
-
-setup_dotagent() {
-    echo "Setting up with dotagent..."
+    echo -e "${YELLOW}Bitte IDE neu starten um MCP-Server zu aktivieren.${NC}"
     
-    if ! command -v dotagent &> /dev/null; then
-        echo "Installing dotagent..."
-        npm install -g dotagent
+    if [ "$SKIP_VERIFY" != "true" ]; then
+        echo ""
+        verify_json "$config_path"
     fi
-    
-    TEMP_DIR=$(mktemp -d)
-    echo "Cloning repository to $TEMP_DIR..."
-    git clone --depth 1 "$REPO_URL" "$TEMP_DIR"
-    
-    echo "Importing rules..."
-    cd "$TEMP_DIR"
-    dotagent import .
-    
-    echo "Exporting to all formats..."
-    dotagent export --formats all --no-gitignore
-    
-    echo ""
-    echo "Copying to current directory..."
-    cp -r .agent "$OLDPWD/" 2>/dev/null || true
-    cp .cursorrules "$OLDPWD/" 2>/dev/null || true
-    cp .windsurfrules "$OLDPWD/" 2>/dev/null || true
-    cp .clinerules "$OLDPWD/" 2>/dev/null || true
-    cp CLAUDE.md "$OLDPWD/" 2>/dev/null || true
-    mkdir -p "$OLDPWD/.github"
-    cp .github/copilot-instructions.md "$OLDPWD/.github/" 2>/dev/null || true
-    mkdir -p "$OLDPWD/.zed"
-    cp .zed/rules.md "$OLDPWD/.zed/" 2>/dev/null || true
-    
-    rm -rf "$TEMP_DIR"
-    cd "$OLDPWD"
-    
-    echo ""
-    echo "Done! Rules exported to all IDE formats."
 }
 
-export_single_format() {
-    FORMAT=$1
-    echo "Exporting to $FORMAT format..."
+export_format() {
+    local format="$1"
+    local filename="$2"
+    local target_dir="${3:-.}"
     
-    TEMP_DIR=$(mktemp -d)
-    git clone --depth 1 "$REPO_URL" "$TEMP_DIR"
+    check_permissions "$target_dir"
     
-    case $FORMAT in
-        cursor)
-            cat "$TEMP_DIR/rules/"*.md > .cursorrules
-            echo "Created: .cursorrules"
-            ;;
+    local temp_dir
+    temp_dir=$(fetch_rules)
+    
+    local target_path
+    
+    case "$format" in
         copilot)
-            mkdir -p .github
-            cat "$TEMP_DIR/rules/"*.md > .github/copilot-instructions.md
-            echo "Created: .github/copilot-instructions.md"
-            ;;
-        claude)
-            cat "$TEMP_DIR/rules/"*.md > CLAUDE.md
-            echo "Created: CLAUDE.md"
-            ;;
-        windsurf)
-            cat "$TEMP_DIR/rules/"*.md > .windsurfrules
-            echo "Created: .windsurfrules"
+            mkdir -p "$target_dir/.github"
+            target_path="$target_dir/.github/copilot-instructions.md"
             ;;
         zed)
-            mkdir -p .zed
-            cat "$TEMP_DIR/rules/"*.md > .zed/rules.md
-            echo "Created: .zed/rules.md"
+            mkdir -p "$target_dir/.zed"
+            target_path="$target_dir/.zed/rules.md"
             ;;
-        cline)
-            cat "$TEMP_DIR/rules/"*.md > .clinerules
-            echo "Created: .clinerules"
+        *)
+            target_path="$target_dir/$filename"
             ;;
     esac
     
-    rm -rf "$TEMP_DIR"
-    echo "Done!"
+    cat "$temp_dir/rules/"*.md > "$target_path"
+    
+    rm -rf "$temp_dir"
+    
+    if [ "$SKIP_VERIFY" != "true" ]; then
+        verify_file "$target_path"
+    else
+        echo -e "${GREEN}Erstellt: $target_path${NC}"
+    fi
 }
 
-export_all_formats() {
-    echo "Exporting to all IDE formats..."
+export_all() {
+    local target_dir="${1:-.}"
     
-    TEMP_DIR=$(mktemp -d)
-    git clone --depth 1 "$REPO_URL" "$TEMP_DIR"
+    check_permissions "$target_dir"
     
-    COMBINED=$(cat "$TEMP_DIR/rules/"*.md)
+    local temp_dir
+    temp_dir=$(fetch_rules)
     
-    echo "$COMBINED" > .cursorrules
-    echo "Created: .cursorrules"
+    local combined
+    combined=$(cat "$temp_dir/rules/"*.md)
     
-    mkdir -p .github
-    echo "$COMBINED" > .github/copilot-instructions.md
-    echo "Created: .github/copilot-instructions.md"
+    echo "$combined" > "$target_dir/.cursorrules"
+    mkdir -p "$target_dir/.github"
+    echo "$combined" > "$target_dir/.github/copilot-instructions.md"
+    echo "$combined" > "$target_dir/CLAUDE.md"
+    echo "$combined" > "$target_dir/.windsurfrules"
+    mkdir -p "$target_dir/.zed"
+    echo "$combined" > "$target_dir/.zed/rules.md"
+    echo "$combined" > "$target_dir/.clinerules"
     
-    echo "$COMBINED" > CLAUDE.md
-    echo "Created: CLAUDE.md"
+    if [ -f "$temp_dir/AGENTS.md" ]; then
+        cp "$temp_dir/AGENTS.md" "$target_dir/AGENTS.md"
+    fi
     
-    echo "$COMBINED" > .windsurfrules
-    echo "Created: .windsurfrules"
+    rm -rf "$temp_dir"
     
-    mkdir -p .zed
-    echo "$COMBINED" > .zed/rules.md
-    echo "Created: .zed/rules.md"
+    echo -e "${GREEN}Alle Formate exportiert:${NC}"
     
-    echo "$COMBINED" > .clinerules
-    echo "Created: .clinerules"
-    
-    cp "$TEMP_DIR/AGENTS.md" ./AGENTS.md 2>/dev/null || true
-    echo "Created: AGENTS.md"
-    
-    rm -rf "$TEMP_DIR"
+    if [ "$SKIP_VERIFY" != "true" ]; then
+        verify_file "$target_dir/.cursorrules"
+        verify_file "$target_dir/.github/copilot-instructions.md"
+        verify_file "$target_dir/CLAUDE.md"
+        verify_file "$target_dir/.windsurfrules"
+        verify_file "$target_dir/.zed/rules.md"
+        verify_file "$target_dir/.clinerules"
+        [ -f "$target_dir/AGENTS.md" ] && verify_file "$target_dir/AGENTS.md"
+    fi
+}
+
+run_verify() {
+    echo -e "${BLUE}Prüfe Installation...${NC}"
     echo ""
-    echo "Done! All IDE formats created."
+    
+    local has_files=false
+    local all_ok=true
+    
+    [ -f ".cursorrules" ] && { has_files=true; verify_file ".cursorrules" || all_ok=false; }
+    [ -f ".github/copilot-instructions.md" ] && { has_files=true; verify_file ".github/copilot-instructions.md" || all_ok=false; }
+    [ -f "CLAUDE.md" ] && { has_files=true; verify_file "CLAUDE.md" || all_ok=false; }
+    [ -f ".windsurfrules" ] && { has_files=true; verify_file ".windsurfrules" || all_ok=false; }
+    [ -f ".zed/rules.md" ] && { has_files=true; verify_file ".zed/rules.md" || all_ok=false; }
+    [ -f ".clinerules" ] && { has_files=true; verify_file ".clinerules" || all_ok=false; }
+    [ -f "AGENTS.md" ] && { has_files=true; verify_file "AGENTS.md" || all_ok=false; }
+    
+    local mcp_config=""
+    [ -f "$HOME/.cursor/mcp.json" ] && mcp_config="$HOME/.cursor/mcp.json"
+    [ -f "$HOME/Library/Application Support/Claude/claude_desktop_config.json" ] && \
+        mcp_config="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
+    
+    if [ -n "$mcp_config" ]; then
+        has_files=true
+        verify_json "$mcp_config" || all_ok=false
+    fi
+    
+    echo ""
+    echo "────────────────────────────────────"
+    
+    if [ "$has_files" = false ]; then
+        echo -e "${YELLOW}Keine Regel-Dateien gefunden.${NC}"
+        echo "Führe 'setup.sh all' oder 'npx ai-dev-rules setup' aus."
+        exit $EXIT_VERIFY_FAILED
+    elif [ "$all_ok" = true ]; then
+        echo -e "${GREEN}Installation erfolgreich!${NC}"
+        exit $EXIT_SUCCESS
+    else
+        echo -e "${YELLOW}Installation mit Warnungen abgeschlossen.${NC}"
+        exit $EXIT_VERIFY_FAILED
+    fi
 }
 
-clone_repo() {
-    echo "Cloning repository..."
-    git clone "$REPO_URL"
-    echo "Done! Repository cloned to ./ai_dev_rules"
+interactive_setup() {
+    echo "Was möchtest du einrichten?"
+    echo ""
+    echo "  1) MCP Server (Cursor, Claude Desktop, Kiro)"
+    echo "  2) Ein IDE-Format exportieren"
+    echo "  3) Alle IDE-Formate exportieren"
+    echo ""
+    read -rp "Auswahl (1-3): " choice
+    
+    case "$choice" in
+        1)
+            setup_mcp
+            ;;
+        2)
+            echo ""
+            echo "Welches Format?"
+            echo ""
+            echo "  1) Cursor (.cursorrules)"
+            echo "  2) GitHub Copilot (.github/copilot-instructions.md)"
+            echo "  3) Claude (CLAUDE.md)"
+            echo "  4) Windsurf (.windsurfrules)"
+            echo "  5) Zed (.zed/rules.md)"
+            echo "  6) Cline (.clinerules)"
+            echo ""
+            read -rp "Auswahl (1-6): " format_choice
+            
+            case "$format_choice" in
+                1) export_format "cursor" ".cursorrules" ;;
+                2) export_format "copilot" "" ;;
+                3) export_format "claude" "CLAUDE.md" ;;
+                4) export_format "windsurf" ".windsurfrules" ;;
+                5) export_format "zed" "" ;;
+                6) export_format "cline" ".clinerules" ;;
+                *) echo -e "${RED}Ungültige Auswahl${NC}"; exit $EXIT_INVALID_ARGS ;;
+            esac
+            ;;
+        3)
+            export_all
+            ;;
+        *)
+            echo -e "${RED}Ungültige Auswahl${NC}"
+            exit $EXIT_INVALID_ARGS
+            ;;
+    esac
 }
+
+SKIP_VERIFY=false
+AUTO_YES=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --no-verify)
+            SKIP_VERIFY=true
+            shift
+            ;;
+        --yes|-y)
+            AUTO_YES=true
+            shift
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
 
 print_header
+check_network
 
-case "${1:-}" in
+case "${1:-setup}" in
+    setup)
+        interactive_setup
+        ;;
     mcp)
         setup_mcp
         ;;
-    dotagent)
-        setup_dotagent
+    cursor)
+        export_format "cursor" ".cursorrules"
         ;;
-    cursor|copilot|claude|windsurf|zed|cline)
-        export_single_format "$1"
+    copilot)
+        export_format "copilot" ""
+        ;;
+    claude)
+        export_format "claude" "CLAUDE.md"
+        ;;
+    windsurf)
+        export_format "windsurf" ".windsurfrules"
+        ;;
+    zed)
+        export_format "zed" ""
+        ;;
+    cline)
+        export_format "cline" ".clinerules"
         ;;
     all)
-        export_all_formats
+        export_all
         ;;
-    clone)
-        clone_repo
+    verify)
+        run_verify
+        ;;
+    help|--help|-h)
+        print_usage
         ;;
     *)
+        echo -e "${RED}Unbekannter Befehl: $1${NC}"
+        echo ""
         print_usage
+        exit $EXIT_INVALID_ARGS
         ;;
 esac

@@ -26,11 +26,22 @@ This repository is a **documentation and configuration system** for AI-assisted 
 
 ## Commands
 
-No build/lint/test commands exist - this is a documentation repository.
+### AI Dev Rules CLI
+
+| Command | Purpose |
+|---------|---------|
+| `npx ai-dev-rules setup` | Interactive setup wizard |
+| `npx ai-dev-rules setup --mcp` | Configure MCP for Cursor/Claude/Kiro |
+| `npx ai-dev-rules setup --format cursor` | Export to specific format |
+| `npx ai-dev-rules setup --all` | Export to all IDE formats |
+| `npx ai-dev-rules update` | Update existing rule files |
+| `npx ai-dev-rules verify` | Verify installation |
+
+### Other Commands
 
 | Command | Purpose | Requirements |
 |---------|---------|--------------|
-| `npx -y agent-rules-mcp@latest` | Test MCP server locally | Node.js 18+, serves rules from configured GitHub repo |
+| `npx -y agent-rules-mcp@latest` | Test MCP server locally | Node.js 18+ |
 | `bd ready --json` | Show actionable tasks | [Beads CLI](https://github.com/steveyegge/beads) |
 | `bd create "Task" -p 1` | Create new task with priority | Beads CLI |
 | `bd close <task-id>` | Close completed task | Beads CLI |

@@ -1,0 +1,46 @@
+{
+  "name": "ai-dev-rules",
+  "version": "1.0.0",
+  "description": "Universal AI development rules installer for all IDEs and CLI tools",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "ai-dev-rules": "./bin/ai-dev-rules.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "dev": "tsup src/index.ts --format esm --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ai",
+    "rules",
+    "cursor",
+    "copilot",
+    "claude",
+    "windsurf",
+    "mcp",
+    "agent"
+  ],
+  "author": "raremalo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/raremalo/ai_dev_rules"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "ora": "^8.0.1",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/prompts": "^2.4.9",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
+  }
+}
